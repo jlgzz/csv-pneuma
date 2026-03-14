@@ -1,4 +1,8 @@
 .DS_Store
+test.py
+outputs/*
+!outputs/.gitkeep
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
