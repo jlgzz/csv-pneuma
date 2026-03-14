@@ -1,2 +1,3 @@
 # csv-pneuma
-Análisis de dato de sensores 
+
+Script pensado para procesar y generar las graficas que se requieren para el reporte
