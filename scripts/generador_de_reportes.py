@@ -2,7 +2,9 @@ import funciones
 
 def main():
     archivo= "scr/datalogger_rawData.csv"
-    funciones.generar_csv_salida(archivo)
+    totalizador = funciones.revisar_totalizador(archivo)    
+    datos_crudos = funciones.leer_csv(archivo)
+    datos_procesados = funciones.generar_csv_salida(archivo)
 
 
 if __name__ == "__main__":
