@@ -30,11 +30,7 @@ def leer_csv(archivo):
     print(df.head())
     return df
 
-def generar_csv_salida(archivo):
-    contante_presion_psi_abs = 14.69657535
-    constante_temp_r = 491.67
-
-
+def generar_csv_salida(archivo, totalizador_inicial):
     df = pd.read_csv(
         archivo,
         sep=";",
@@ -45,27 +41,38 @@ def generar_csv_salida(archivo):
 
     df.columns = ['Time', 'Flow', 'Pressure', 'Temperature', 'Totalizer']
 
-# Multiplicar Temperature por 2
-    temperatura_R = df['Temperature'] * 1.8 + constante_temp_r
-    presion_psi_abosulta = df['Pressure'] + contante_presion_psi_abs
+    # Convertir columnas a numéricas
+    df['Flow'] = pd.to_numeric(df['Flow'], errors='coerce')
+    df['Pressure'] = pd.to_numeric(df['Pressure'], errors='coerce')
+    df['Temperature'] = pd.to_numeric(df['Temperature'], errors='coerce')
+    df['Totalizer'] = pd.to_numeric(df['Totalizer'], errors='coerce')
 
 
 
-    # Asegurarse de que Flow sea numérico, permitiendo tanto cadenas con comas como números flotantes
-    flow = df['Flow']
-    if flow.dtype == object:
-        flow = flow.str.replace(',', '', regex=False)
-    df['Flow'] = pd.to_numeric(flow, errors='coerce')
-
-    df['Flow'] = df['Flow'] * temperatura_R * contante_presion_psi_abs / presion_psi_abosulta *constante_temp_r
+    # Convertir de GPa a psi
+    df['Pressure'] = round(df['Pressure']/1000000000*145.037737, 2)  # Convertir de GPa a psi
 
 
-    
+    # Constantes para corrección de flujo
+    constante_presion_psi_abs = 14.69597535
+    constante_temp_r = 491.67
+    # Convertir Flow de Ln/min a L/min (flujo actual)
+    df['Pressure_abs'] = df['Pressure'] + 14.5
+    # Temperatura en Rankine
+    df['Temperature_R'] = (df['Temperature'] * 1.8)+ constante_temp_r
+    # Convertir de Ln/min a L/min y redondear a 2 decimales
+    df['Flow'] = round(df['Flow']*df['Temperature_R']*constante_presion_psi_abs/(df['Pressure_abs']*constante_temp_r), 2)  
 
-    # Cambia el nombre de las columnas a algo más amigable
+    # Calcular Totalizer corregido
+    df['Totalizer'] = round((df['Totalizer'] - totalizador_inicial)*1000*df['Temperature_R']*constante_presion_psi_abs/(df['Pressure_abs']*constante_temp_r), 2)  # Convertir a litros y corregir por temperatura y presión   
+
+
+
+    # Eliminar columnas temporales
+    df.drop(['Pressure_abs', 'Temperature_R'], axis=1, inplace=True)
+
     df.columns = ['Timestamp', 'Flow (L/min)', 'Pressure (Psi)', 'Temperature (°C)', 'Totalizer (L)']
     df.to_csv('outputs/datos_preprocesados.csv', index=False)
-
     print("Csv de salida generado exitosamente")
     print(df.head())
     return None
