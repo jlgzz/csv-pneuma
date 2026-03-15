@@ -75,4 +75,4 @@ def generar_csv_salida(archivo, totalizador_inicial):
     df.to_csv('outputs/datos_preprocesados.csv', index=False)
     print("Csv de salida generado exitosamente")
     print(df.head())
-    return None
+    return df
